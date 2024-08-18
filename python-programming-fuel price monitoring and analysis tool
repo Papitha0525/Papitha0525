@@ -1,0 +1,50 @@
+import requests
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+from datetime import datetime
+
+# Mock API endpoint
+API_URL = 'https://api.mockfuelprices.com/current'
+
+def fetch_fuel_prices():
+    response = requests.get(API_URL)
+    if response.status_code == 200:
+        data = response.json()
+        return data
+    else:
+        raise Exception("Failed to fetch data from API")
+
+def store_data(data, filename='fuel_prices.csv'):
+    df = pd.DataFrame(data)
+    df['date'] = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    df.to_csv(filename, mode='a', header=False, index=False)
+
+def analyze_data(filename='fuel_prices.csv'):
+    df = pd.read_csv(filename)
+    average_price = df['price'].mean()
+    print(f"Average Price: {average_price}")
+
+def visualize_data(filename='fuel_prices.csv'):
+    df = pd.read_csv(filename)
+    df['date'] = pd.to_datetime(df['date'])
+    
+    plt.figure(figsize=(12, 6))
+    sns.lineplot(data=df, x='date', y='price')
+    plt.title('Fuel Price Trend')
+    plt.xlabel('Date')
+    plt.ylabel('Price')
+    plt.xticks(rotation=45)
+    plt.tight_layout()
+    plt.show()
+
+# Main execution
+if __name__ == "__main__":
+    try:
+        data = fetch_fuel_prices()
+        store_data(data)
+        analyze_data()
+        visualize_data()
+    except Exception as e:
+        print(f"An error occurred: {e}")
+
